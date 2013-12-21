@@ -1,3 +1,3 @@
-# Magnoir
+# MAGNOIR
 
 2014-01-01
