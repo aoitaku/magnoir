@@ -34,17 +34,26 @@ Window.width = 640
 
 game = Game.new
 controller = Controller.new(game)
-view = View.new(game,controller)
+view = TitleView.new(game, controller)
 
 Window.loop do
 
   controller.input
   view.draw
   game.clock if(game.state == :game)
-  if(game.state == :next)
+  case game.state
+  when :next
     game = Game.new
     controller = Controller.new(game)
-    view = View.new(game,controller)
+    view = GameView.new(game, controller)
+  when :title
+    view = TitleView.new(game, controller)
+  when :game
+    view = GameView.new(game, controller)
+  when :ranking
+    view = RankingView.new(game, controller)
+  when :end
+    view = EndingView.new(game, controller)
   end
 
 end

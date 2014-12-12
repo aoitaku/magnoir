@@ -1,25 +1,20 @@
-class View
+class ViewBase
 
-  def initialize(game,controller)
-    @game = game
+  def initialize(model, controller)
+    @model = model
     @controller = controller
+  end
+
+end
+
+class TitleView < ViewBase
+
+  def initialize(model, controller)
+    super
     @maguro = Image.load("maguro.png")
   end
 
   def draw
-    case @game.state
-    when :title
-      draw_title
-    when :game
-      draw_game
-    when :ranking
-      draw_ranking
-    when :end
-      draw_ending
-    end
-  end
-
-  def draw_title
     Window.draw(0,0,@maguro)
     Window.drawFont(70, 10, "MAGURO", Font120)
     MENU_TEXT.each_with_index do |menu,i|
@@ -29,7 +24,11 @@ class View
     end
   end
 
-  def draw_game
+end
+
+class GameView < ViewBase
+
+  def draw
     Window.drawFont(20,15,"PAUSE",Font20) if(@game.pause)
     Window.draw(WAREHOUSE_X,20,WAREHOUSE_LINE)
     @game.fishes.each_with_index do |f,i|
@@ -68,7 +67,11 @@ class View
     Window.drawFont(SHIPS_X[n]+6,SHIPS_Y+10,ship_status,Font16)
   end
 
-  def draw_ranking
+end
+
+class RankingView < ViewBase
+
+  def draw
     Window.drawFont(200,40,"RANKING",Font60)
     @game.ranking.each_with_index do |r,i|
       Window.drawFont(250,120+40*i,(i+1).to_s+". "+r.to_s,Font32)
@@ -78,7 +81,11 @@ class View
     Window.drawFont(250,400,"戻る",Font20,fonthash)
   end
 
-  def draw_ending
+end
+
+class EndingView < ViewBase
+
+  def draw
     Window.drawFont(140,40,"GAME OVER",Font60)
     Window.drawFont(200,120,"score: "+@game.score.to_s,Font32)
     Window.drawFont(170,180,"ハイスコアを更新しました！",Font20,{color: [0,255,0]}) if(@game.new_rank)
