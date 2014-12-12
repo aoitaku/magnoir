@@ -1,6 +1,7 @@
 $LOAD_PATH << File.dirname(File.expand_path(__FILE__))
 
 require 'dxruby'
+require 'sprite_ui'
 require 'game'
 require 'view'
 require 'controller'
@@ -36,9 +37,12 @@ game = Game.new
 controller = Controller.new(game)
 view = TitleView.new(game, controller)
 
+SpriteUI.equip MouseEventHandler
+
 Window.loop do
 
   controller.input
+  view.update
   view.draw
   game.clock if(game.state == :game)
   case game.state
