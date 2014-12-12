@@ -1,6 +1,8 @@
+require 'game'
+
 class Ship
-  require 'game'
-attr_reader :level
+
+  attr_reader :level
 
   def initialize(level)
     @level = level
@@ -25,6 +27,5 @@ attr_reader :level
     @status = false
     return Fish.new(Game::d6(@level*2))
   end
-
 
 end

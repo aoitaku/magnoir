@@ -1,6 +1,8 @@
+require 'fish'
+require 'ship'
+
 class Game
-  require 'fish'
-  require 'ship'
+
   attr_reader :state,:money,:rate,:pause,:ranking,:new_rank,:score
 
   def initialize
@@ -135,4 +137,5 @@ class Game
   def self.d6(n)
     n.times.inject(0){|sum|sum+rand(6)+1}
   end
+
 end

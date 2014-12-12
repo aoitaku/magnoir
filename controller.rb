@@ -1,4 +1,5 @@
 class Controller
+
   attr_reader :x,:y,:mx,:my
 
   def initialize(game)
@@ -76,4 +77,5 @@ class Controller
   def mcheck(x1,x2,y1,y2)
     x1 < @mx && x2 > @mx && y1 < @my && y2 > @my
   end
+
 end

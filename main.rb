@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-#$:.unshift File.dirname(__FILE__)
 $LOAD_PATH << File.dirname(File.expand_path(__FILE__))
 
 require 'dxruby'
@@ -49,4 +46,5 @@ Window.loop do
     controller = Controller.new(game)
     view = View.new(game,controller)
   end
+
 end

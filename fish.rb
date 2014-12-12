@@ -1,5 +1,7 @@
 class Fish
-attr_reader :amount,:limit
+
+  attr_reader :amount,:limit
+
   def initialize(amount)
     @amount = amount
     @limit = 72
