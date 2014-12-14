@@ -14,8 +14,8 @@ class TitleView < ViewBase
 
   def initialize(model, controller)
     super
-    @maguro = Sprite.new(0, 0, Image.load("maguro.png"))
     @ui = SpriteUI.build {
+      image Image.load("maguro.png")
       TextLabel {
         x 80
         y 10
@@ -50,7 +50,6 @@ class TitleView < ViewBase
   end
 
   def draw
-    @maguro.draw
     @ui.draw
   end
 
@@ -60,12 +59,14 @@ class GameView < ViewBase
 
   def initialize(model, controller)
     super
-    @pause = UI::TextLabel.new
-    @pause.font = Font20
-    @pause.text = "PAUSE"
-    @pause.x = 20
-    @pause.y = 15
-    @line = Sprite.new(480, 20, Image.new(1,420).line(0,0,0,420,[255,255,255]))
+    @pause = SpriteUI.build {
+      TextLabel {
+        font Font20
+        text "PAUSE"
+        x 20
+        y 15
+      }
+    }
     ship_caption = proc {
       image Image.new(100, 30).box(0, 0, 100, 30, [255,255,255])
       TextLabel(:lv) {
@@ -94,32 +95,38 @@ class GameView < ViewBase
     }
     @ui = SpriteUI.build {
       ContainerBox(:warehouse) {
-        x 490
+        x 480
+        y 20
+        image Image.new(1,420).line(0,0,0,420,[255,255,255])
         position :absolute
         ContainerBox(:fishes) {
-          y 90
+          x 10
+          y 70
           position :absolute
         }
         TextLabel(:money) {
-          y 400
+          x 10
+          y 380
           text "資金 600"
           font Font20
           position :absolute
         }
         TextLabel(:day) {
-          y 20
+          x 10
           text "1日目"
           font Font20
           position :absolute
         }
         TextLabel(:time) {
-          y 40
+          x 10
+          y 20
           text "0:00"
           font Font20
           position :absolute
         }
         TextLabel(:rate) {
-          y 60
+          x 10
+          y 40
           text "相場 10"
           font Font20
           position :absolute
@@ -218,7 +225,6 @@ class GameView < ViewBase
 
   def draw
     @pause.draw if @model.pause
-    @line.draw
     @ui.draw
   end
 
@@ -272,14 +278,48 @@ end
 
 class RankingView < ViewBase
 
-  def draw
-    Window.drawFont(200,40,"RANKING",Font60)
+  def initialize(model, controller)
+    super
+    @ui = SpriteUI.build {
+      TextLabel {
+        x 200
+        y 40
+        text "RANKING"
+        font Font60
+        position :absolute
+      }
+      TextButton {
+        x 250
+        y 400
+        text "戻る"
+        font Font20
+        position :absolute
+      }
+      ContainerBox(:ranking)
+    }
+    ranking = @ui.find(:ranking)
     @model.ranking.each_with_index do |r,i|
-      Window.drawFont(250,120+40*i,(i+1).to_s+". "+r.to_s,Font32)
+      ranking.add SpriteUI.build {
+        TextLabel {
+          x 250
+          y 120 + 40 * i
+          text "#{(i+1).to_s}. #{r.to_s}"
+          font Font32
+          position :absolute
+        }
+      }
     end
-    fonthash = {}
-    fonthash = {color: YELLOW} if(@controller.pos_return)
-    Window.drawFont(250,400,"戻る",Font20,fonthash)
+    @ui.layout
+    @mouse_event_dispatcher = SpriteUI::MouseEventDispatcher.new(@ui)
+  end
+
+  def update
+    @mouse_event_dispatcher.update
+    @mouse_event_dispatcher.dispatch
+  end
+
+  def draw
+    @ui.draw
   end
 
 end
@@ -288,15 +328,52 @@ class EndingView < ViewBase
 
   def initialize(model, controller)
     super
+    score = @model.score.to_s
+    @highscore = SpriteUI.build {
+      TextLabel {
+        x 170
+        y 180
+        text "ハイスコアを更新しました！"
+        font Font20
+        color [255,0,255,0]
+        position :absolute
+      }
+    }
+    @ui = SpriteUI.build {
+      TextLabel {
+        x 140
+        y 40
+        text "GAME OVER"
+        font Font60
+        position :absolute
+      }
+      TextLabel {
+        x 200
+        y 120
+        text "score: #{score}"
+        font Font32
+        position :absolute
+      }
+      TextButton {
+        x 250
+        y 400
+        text "戻る"
+        font Font20
+        position :absolute
+      }
+    }
+    @ui.layout
+    @mouse_event_dispatcher = SpriteUI::MouseEventDispatcher.new(@ui)
+  end
+
+  def update
+    @mouse_event_dispatcher.update
+    @mouse_event_dispatcher.dispatch
   end
 
   def draw
-    Window.drawFont(140,40,"GAME OVER",Font60)
-    Window.drawFont(200,120,"score: "+@model.score.to_s,Font32)
-    Window.drawFont(170,180,"ハイスコアを更新しました！",Font20,{color: [0,255,0]}) if(@model.new_rank)
-    fonthash = {}
-    fonthash = {color: YELLOW} if(@controller.pos_return)
-    Window.drawFont(250,400,"戻る",Font20,fonthash)
+    @highscore.draw if @model.new_rank
+    @ui.draw
   end
 
 end
