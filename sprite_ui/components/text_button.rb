@@ -1,7 +1,5 @@
 class UI::TextButton < UI::TextLabel
 
-  attr_writer :color
-
   def draw_params
     if color
       [text, {color: color}]
@@ -33,4 +31,5 @@ class UI::TextButton < UI::TextLabel
       @color
     end
   end
+
 end

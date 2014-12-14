@@ -1,6 +1,7 @@
 class UI::TextLabel < SpriteUI::Base
 
   attr_reader :text, :font
+  attr_accessor :color
 
   def initialize(id='', text='', x=0, y=0, *argv)
     super(id, x, y)
@@ -49,7 +50,11 @@ class UI::TextLabel < SpriteUI::Base
   end
 
   def draw_params
-    [text, {}]
+    if color
+      [text, {color: color}]
+    else
+      [text, {}]
+    end
   end
 
 end
