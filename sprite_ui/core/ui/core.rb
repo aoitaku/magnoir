@@ -19,7 +19,7 @@ module UI
 
       def event_handler(*names) names.each {|name| class_eval(<<-EOD) } end
         def on_#{name}(*args)
-          event_handlers[:#{name}] and event_handlers[:#{name}].(*args)
+          event_handlers[:#{name}] and instance_exec(*args, &event_handlers[:#{name}])
         end
       EOD
 
@@ -106,6 +106,10 @@ module UI
       else
         UI.resolve_method(name, *args)
       end
+    end
+
+    def respond_to?(name)
+      UI.worker.acceptable?(name)
     end
 
   end
