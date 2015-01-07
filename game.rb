@@ -54,6 +54,8 @@ class Game
   end
 
   def clock
+    @fishes.each {|fish| fish.notify_observers(fish.limit_gauge) }
+    @ships.each {|ship| ship.notify_observers(ship.level) }
     return if(@pause)
     hour = self.hour
     @time += 1

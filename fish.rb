@@ -1,4 +1,8 @@
+require 'observer'
+
 class Fish
+
+  include Observable
 
   attr_reader :amount,:limit
 
@@ -9,14 +13,16 @@ class Fish
 
   def rot
     @limit -= 1
+    changed
   end
 
-  def limit_gage
+  def limit_gauge
     str = ""
     (@limit/6).times do
       str += "|"
     end
     str
   end
+  alias limit_gage limit_gauge
 
 end

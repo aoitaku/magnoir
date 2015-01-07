@@ -44,7 +44,7 @@ Window.loop do
   controller.input
   view.update
   view.draw
-  game.clock if(game.state == :game)
+  game.clock if game.state == :game
   case game.state
   when :next
     game = Game.new
@@ -53,7 +53,7 @@ Window.loop do
   when :title
     view = TitleView.new(game, controller)
   when :game
-    view = GameView.new(game, controller)
+    view = GameView.new(game, controller) unless GameView === view
   when :ranking
     view = RankingView.new(game, controller)
   when :end

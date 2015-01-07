@@ -1,6 +1,9 @@
+require 'observer'
 require 'game'
 
 class Ship
+
+  include Observable
 
   attr_reader :level
 
@@ -11,6 +14,7 @@ class Ship
 
   def levelup
     @level += 1
+    changed
   end
 
   def levelup_cost

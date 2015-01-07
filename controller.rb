@@ -16,9 +16,9 @@ class Controller
         @game.rank_start if(pos_menu == 1)
         exit if(pos_menu == 2)
       when :game
-        @game.sell_fish(pos_fish) if(pos_fish != -1)
+        #@game.sell_fish(pos_fish) if(pos_fish != -1)
         #@game.ship(pos_ship) if(pos_ship != -1)
-        @game.alt_ship(pos_ship_alt) if(pos_ship_alt != -1)
+        #@game.alt_ship(pos_ship_alt) if(pos_ship_alt != -1)
       when :ranking
         @game.go_title if(pos_return)
       when :end
@@ -40,6 +40,14 @@ class Controller
     if(Input.key_push?(K_ESCAPE))
       exit
     end
+  end
+
+  def on_fish_click(pos)
+    @game.sell_fish(pos) if pos
+  end
+
+  def on_ship_click(pos)
+    @game.alt_ship(pos) if pos
   end
 
   def pos_menu

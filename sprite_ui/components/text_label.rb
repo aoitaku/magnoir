@@ -26,7 +26,7 @@ class UI::TextLabel < SpriteUI::Base
 
   def draw
     super
-    TextRenderer.draw(x, y, self, context)
+    TextRenderer.draw(x, y, self, context) if visible?
   end
 
   def content_width
