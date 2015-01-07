@@ -16,14 +16,21 @@ module SpriteUI
     include UI::Control
 
     attr_accessor :id
-    attr_accessor :position
-    attr_writer :width, :height
+    attr_accessor :position, :top, :left
+    attr_writer :width, :height, :visible
 
     def initialize(id='', *args)
       super(0, 0)
       self.id = id
       self.position = :relative
+      self.visible = true
+      self.top = 0
+      self.left = 0
       init_control
+    end
+
+    def visible?
+      @visible
     end
 
     def width
@@ -77,21 +84,21 @@ module SpriteUI
     end
 
     def draw
-      draw_image(x, y, image) if image
+      draw_image(x, y, image) if visible?
     end
 
     def draw_image(x, y, image)
-      (target or Window).draw(x, y, image)
+      (target or Window).draw(x, y, image) if image
     end
 
     def update
     end
 
     def layout(ox=0, oy=0, &block)
-      self.x += ox
-      self.y += oy
+      self.x = ox + left
+      self.y = oy + top
       yield if block_given?
-      self.collision = [0, 0, self.width, self.height]
+      self.collision = [0, 0, width, height]
     end
 
   end
@@ -107,7 +114,7 @@ module SpriteUI
 
     def draw
       super
-      components.each(&:draw)
+      components.each(&:draw) if visible?
     end
 
     def update
@@ -121,10 +128,10 @@ module SpriteUI
           component.layout(self.x, self.y + height)
           height + component.layout_height
         end
-        unless self.height
+        if self.height == 0
           self.height = height
         end
-        unless self.width
+        if self.width == 0
           self.width = components.inject(0) do |width, component|
             [width, component.layout_width].max
           end
