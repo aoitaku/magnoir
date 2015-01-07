@@ -2,7 +2,7 @@ class MouseEvent
 
   include UI::Event
 
-  def mouse_out(current_target, target, *args)
+  def mouse_out(target, current_target, *args)
     if current_target == target
       current_target.hoverout
       current_target.on_mouse_leave(target, *args)
@@ -10,11 +10,11 @@ class MouseEvent
     current_target.on_mouse_out(target, *args)
   end
 
-  def mouse_move(current_target, target, *args)
+  def mouse_move(target, current_target, *args)
     current_target.on_mouse_move(target, *args)
   end
 
-  def mouse_over(current_target, target, *args)
+  def mouse_over(target, current_target, *args)
     if current_target == target
       current_target.hoverover
       current_target.on_mouse_enter(target, *args)
@@ -22,39 +22,39 @@ class MouseEvent
     current_target.on_mouse_over(target, *args)
   end
 
-  def mouse_left_push(current_target, target, *args)
+  def mouse_left_push(target, current_target, *args)
     current_target.on_mouse_left_push(target, *args)
   end
 
-  def mouse_left_down(current_target, target, *args)
+  def mouse_left_down(target, current_target, *args)
     current_target.on_mouse_left_down(target, *args)
   end
 
-  def mouse_left_release(current_target, target, *args)
+  def mouse_left_release(target, current_target, *args)
     current_target.on_mouse_left_release(target, *args)
   end
 
-  def mouse_middle_push(current_target, target, *args)
+  def mouse_middle_push(target, current_target, *args)
     current_target.on_mouse_middle_push(target, *args)
   end
 
-  def mouse_middle_down(current_target, target, *args)
+  def mouse_middle_down(target, current_target, *args)
     current_target.on_mouse_middle_down(target, *args)
   end
 
-  def mouse_middle_release(current_target, target, *args)
+  def mouse_middle_release(target, current_target, *args)
     current_target.on_mouse_middle_release(target, *args)
   end
 
-  def mouse_right_push(current_target, target, *args)
+  def mouse_right_push(target, current_target, *args)
     current_target.on_mouse_right_push(target, *args)
   end
 
-  def mouse_right_down(current_target, target, *args)
+  def mouse_right_down(target, current_target, *args)
     current_target.on_mouse_right_down(target, *args)
   end
 
-  def mouse_right_release(current_target, target, *args)
+  def mouse_right_release(target, current_target, *args)
     current_target.on_mouse_right_release(target, *args)
   end
 
