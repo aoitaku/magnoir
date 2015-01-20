@@ -118,6 +118,8 @@ class GameView < ViewBase
         add_event_handler :mouse_left_push, -> target {
           controller.on_ship_click(components.map {|component|
             component.find(:gradeup)
+          }.reject {|component|
+            component.disable? 
           }.find_index {|component|
             target == component
           })
@@ -137,6 +139,16 @@ class GameView < ViewBase
       model.ships[n].changed
       model.ships[n].notify_observers(model.ships[n].level)
     }
+    fishes = @ui.find(:fishes)
+    model.add_observer(ObserverCallback.new {|event|
+      event_type, value = *event.to_a.first
+      case event_type
+      when :sell_all
+        fishes.components.clear
+      when :sell, :dispose
+        fishes.components.delete_at(value)
+      end
+    })
     @mouse_event_dispatcher = SpriteUI::MouseEventDispatcher.new(@ui)
   end
 
@@ -165,20 +177,17 @@ class GameView < ViewBase
     @ui.find(:pause).visible = @model.pause
     fishes = @ui.find(:fishes)
     if @model.fishes.size > fishes.components.size
-      (@model.fishes.size - fishes.components.size).times do |n|
-        fish = fish_container(
-          fish_text(@model.fishes[fishes.components.size+n]),
-          fish_gauge(@model.fishes[fishes.components.size+n])
-        )
-        @model.fishes[fishes.components.size+n].add_observer(
-          ObserverCallback.new {|value|
+      @model.fishes[fishes.components.size..(@model.fishes.size-1)].each do |f|
+        fish = fish_container(fish_text(f), fish_gauge(f))
+        f.add_observer(ObserverCallback.new {|event|
+          event_type, value = *event.to_a.first
+          case event_type
+          when :limit
             fish.find(:gauge).text = value
-          }
-        )
+          end
+        })
         fishes.add(fish)
       end
-    elsif @model.fishes.size < fishes.components.size
-      fishes.components.pop(fishes.components.size - @model.fishes.size)
     end
     @ui.layout
     fishes.components.each_with_index do |fish, n|
@@ -192,12 +201,14 @@ class GameView < ViewBase
       if @model.infishing?
         ship.find(:gradeup).color = nil
         ship.find(:gradeup).disable
-      elsif @model.money < @model.ships[n].levelup_cost
-        ship.find(:gradeup).color = [255,255,63,0]
-        ship.find(:gradeup).disable
       else
-        ship.find(:gradeup).color = nil
-        ship.find(:gradeup).enable
+        if @model.money < @model.ships[n].levelup_cost
+          ship.find(:gradeup).color = [255,255,63,0]
+          ship.find(:gradeup).disable
+        else
+          ship.find(:gradeup).color = nil
+          ship.find(:gradeup).enable
+        end
       end
       ship.find(:stat).text = ship_state_text(n)
     end

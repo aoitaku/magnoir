@@ -3,6 +3,8 @@ require 'ship'
 
 class Game
 
+  include Observable
+
   attr_reader :state,:money,:rate,:pause,:ranking,:new_rank,:score
 
   def initialize
@@ -14,6 +16,7 @@ class Game
     @pause = true
     @ships = [Ship.new(1),Ship.new(0),Ship.new(0),Ship.new(0)]
     @fishes = []
+    @events = []
   end
 
   def load_ranking
@@ -54,8 +57,7 @@ class Game
   end
 
   def clock
-    @fishes.each {|fish| fish.notify_observers(fish.limit_gauge) }
-    @ships.each {|ship| ship.notify_observers(ship.level) }
+    publish_event
     return if(@pause)
     hour = self.hour
     @time += 1
@@ -71,18 +73,25 @@ class Game
   end
 
   def timecount
-    ending if(day == END_DAY)
-    @rate += d6(2)-7 if(inbusiness?)
-    @rate = 1 if(@rate < 1)
+    ending if day == END_DAY
+    @rate += d6(2) - 7 if inbusiness?
+    @rate = 1 if @rate < 1
     @fishes.each do |f|
       f.rot
-      @money -= f.amount*10 if(f.limit == 0)
+      @money -= f.amount * 10 if f.limit == 0
     end
-    @fishes.reject!{|f|f.limit == 0}
-    @ships.each{|f|f.start_fishing} if(hour == 6)
-    if(hour == 18)
-      get_fish = @ships.map{|s| s.finish_fishing }
-      get_fish.each{|f|@fishes.push(f) if(f)}
+    @fishes.collect!.with_index {|f, index|
+      if f.limit == 0
+        enqueue_event(dispose: index)
+        nil
+      else
+        f
+      end
+    }.compact!
+    @ships.each {|f| f.start_fishing } if hour == 6
+    if hour == 18
+      get_fish = @ships.map {|s| s.finish_fishing }
+      get_fish.each {|f| @fishes.push(f) if f }
     end
   end
 
@@ -114,20 +123,36 @@ class Game
 
   def sell_fish(n)
     return unless(inbusiness?)
+    enqueue_event(sell: n)
     fish = @fishes.delete_at(n)
-    @money += fish.amount*@rate
+    @money += fish.amount * @rate
   end
 
   def sell_all_fish
     return unless(inbusiness?)
-    fish = @fishes.inject(0){|sum,f|sum+f.amount}
-    @money += fish*@rate
+    enqueue_event(sell_all: nil)
+    fish = @fishes.inject(0){|sum, f| sum + f.amount }
+    @money += fish * @rate
     @fishes.clear
   end
 
+  def enqueue_event(event)
+    @events << event
+  end
+
+  def publish_event
+    @fishes.each {|fish| fish.publish_event }
+    @ships.each {|ship| ship.notify_observers(ship.level) }
+    @events.each {|event|
+      changed
+      notify_observers(event)
+    }
+    @events.clear
+  end
+
   def alt_ship(n)
-    return if(@money < @ships[n].levelup_cost)
-    return if(inbusiness?)
+    return if @money < @ships[n].levelup_cost
+    return if inbusiness?
     @money -= @ships[n].levelup_cost
     @ships[n].levelup
   end

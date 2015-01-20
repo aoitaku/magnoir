@@ -9,11 +9,24 @@ class Fish
   def initialize(amount)
     @amount = amount
     @limit = 72
+    @events = []
   end
 
   def rot
     @limit -= 1
-    changed
+    enqueue_event(limit: limit_gauge)
+  end
+
+  def enqueue_event(event)
+    @events << event
+  end
+
+  def publish_event
+    @events.each {|event|
+      changed
+      notify_observers(event)
+    }
+    @events.clear
   end
 
   def limit_gauge
