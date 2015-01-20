@@ -36,6 +36,8 @@ module SpriteUI
     def width
       if @width
         @width
+      elsif @computed_width
+        @computed_width
       else
         content_width
       end
@@ -52,6 +54,8 @@ module SpriteUI
     def height
       if @height
         @height
+      elsif @computed_height
+        @computed_height
       else
         content_height
       end
@@ -128,11 +132,11 @@ module SpriteUI
           component.layout(self.x, self.y + height)
           height + component.layout_height
         end
-        if self.height == 0
-          self.height = height
+        if @height.nil? and (image.nil? or image.height.zero?)
+          @computed_height = height
         end
-        if self.width == 0
-          self.width = components.inject(0) do |width, component|
+        if @width.nil? and (image.nil? or image.width.zero?)
+          @computed_width = components.inject(0) do |width, component|
             [width, component.layout_width].max
           end
         end
