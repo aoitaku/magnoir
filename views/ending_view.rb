@@ -15,6 +15,7 @@ class EndingView < ViewBase
         position :absolute
       }
     }
+    @highscore.layout
     @ui = SpriteUI.build {
       TextLabel {
         left 140
