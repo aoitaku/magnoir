@@ -33,16 +33,41 @@ class GameData < ObservableModel
     @time / (FRAME * 24) + 1
   end
 
+  def update
+    publish
+    return if pause?
+    hour = self.hour
+    day = self.day
+    @time += 1
+    if hour != self.hour
+      publish_event(game_end: self) if day == END_DAY
+      enqueue_event(new_hour: hour)
+      enqueue_event(new_day: day) if day != self.day
+      timecount
+    end
+  end
+
   def timecount
-    fluctuate_rate
+    fluctuate_rate if inbusiness?
     rot_fishes
-    return_ships if hour == 6
-    leave_ships if hour == 18
+    case hour
+    when 6
+      enqueue_event(start_fishing: true)
+      leave_ships
+    when 11
+      enqueue_event(start_business: true)
+    when 15
+      enqueue_event(finish_business: true)
+    when 18
+      enqueue_event(finish_fishing: true)
+      return_ships
+    end
   end
 
   def fluctuate_rate
-    @rate += d6(2) - 7 if inbusiness?
+    @rate += d6(2) - 7
     @rate = 1 if @rate < 1
+    enqueue_event(new_rate: @rate)
   end
 
   def rot_fishes
@@ -56,6 +81,7 @@ class GameData < ObservableModel
 
   def pay_dispose_cost(cost)
     @money -= cost
+    enqueue_event(new_money: @money)
   end
 
   def leave_ships
@@ -76,17 +102,19 @@ class GameData < ObservableModel
 
   def sell_fish(n)
     return unless inbusiness?
-    enqueue_event(sell: n)
     fish = @fishes.delete_at(n)
     @money += fish.amount * @rate
+    enqueue_event(sell: n)
+    enqueue_event(new_money: @money)
   end
 
   def sell_all_fish
     return unless inbusiness?
-    enqueue_event(sell_all: nil)
     fish = @fishes.lazy.map(&:amount).inject(0, &:+)
     @money += fish * @rate
     @fishes.clear
+    enqueue_event(sell_all: true)
+    enqueue_event(new_money: @money)
   end
 
   def publish
@@ -96,10 +124,11 @@ class GameData < ObservableModel
   end
 
   def alt_ship(n)
-    return if @money < @ships[n].levelup_cost
     return if infishing?
+    return if @money < @ships[n].levelup_cost
     @money -= @ships[n].levelup_cost
     @ships[n].levelup
+    enqueue_event(new_money: @money)
   end
 
   def d6(n)

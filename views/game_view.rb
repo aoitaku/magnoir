@@ -118,10 +118,8 @@ class GameView < ViewBase
         add_event_handler :mouse_left_push, -> target {
           controller.on_ship_click(components.map {|component|
             component.find(:gradeup)
-          }.reject {|component|
-            component.disable? 
           }.find_index {|component|
-            target == component
+            target == component and not component.disable?
           })
         }
       }
@@ -135,6 +133,7 @@ class GameView < ViewBase
           ship.find(:lv).text = "Lv.#{value.level.to_s}"
           if value.level > 0
             ship.find(:gradeup).text = "改造#{value.levelup_cost.to_s}"
+            ship.find(:stat).text = "停泊中" if value.level == 1
           else
             ship.find(:gradeup).text = "購入#{value.levelup_cost.to_s}"
           end
@@ -142,37 +141,102 @@ class GameView < ViewBase
       })
       model.ships[n].notify_standby
     end
-    fishes = @ui.find(:fishes)
+    time = @ui.find(:time)
+    day = @ui.find(:day)
+    rate = @ui.find(:rate)
+    money = @ui.find(:money)
+    ships = @ui.find(:ships).components
+    fishes = @ui.find(:fishes).components
     model.add_observer(ObserverCallback.new {|event|
       event_type, value = *event.to_a.first
       case event_type
+      when :new_day
+        day.text = "#{@model.day.to_s}日目"
+      when :new_hour
+        time.text = "#{value.to_s}:00"
+      when :new_rate
+        rate.text = "相場 #{value.to_s}"
+      when :new_money
+        money.text = "資金 #{value.to_s}"
+        ships.each_with_index {|ship, n|
+          enable_ship_upgrade(ship, n)
+        } unless model.infishing?
+      when :start_fishing
+        ships.each_with_index do |ship, n|
+          disable_ship_upgrade(ship)
+          if model.ships[n].level > 0
+            ship.find(:stat).text = "作業中"
+          end
+        end
+      when :start_business
+        fishes.each {|fish| fish.find(:amount).enable }
+      when :finish_business
+        fishes.each {|fish| fish.find(:amount).disable }
+      when :finish_fishing
+        ships.each_with_index do |ship, n|
+          enable_ship_upgrade(ship, n)
+          if model.ships[n].level > 0
+            ship.find(:stat).text = "停泊中"
+          end
+        end
       when :sell_all
-        fishes.components.clear
+        fishes.clear
       when :sell, :dispose
-        fishes.components.delete_at(value)
+        fishes.delete_at(value)
       end
     })
+    ships.each_with_index {|ship, n|
+      enable_ship_upgrade(ship, n)
+    }
     @mouse_event_dispatcher = SpriteUI::MouseEventDispatcher.new(@ui)
   end
 
-  def fish_container(amount, gauge)
-    SpriteUI.build {
+  def enable_ship_upgrade(ship, n)
+    if enough_for_upgrade?(n)
+      ship.find(:gradeup).color = nil
+      ship.find(:gradeup).enable
+    else
+      ship.find(:gradeup).color = [255,255,63,0]
+      ship.find(:gradeup).disable
+    end
+  end
+
+  def disable_ship_upgrade(ship)
+    ship.find(:gradeup).color = nil
+    ship.find(:gradeup).disable
+  end
+
+  def enough_for_upgrade?(n)
+    @model.money >= @model.ships[n].levelup_cost
+  end
+
+  def new_fish(fish_model)
+    fish = SpriteUI.build {
       width 200
       height 20
       TextButton(:amount) {
-        text amount
+        text "マグロ #{fish_model.amount.to_s}"
         width 100
         height 20
         font Font20
         position :absolute
       }
       TextLabel(:gauge) {
-        text gauge
+        text fish_model.limit_gauge
         left 90
         font Font20
         position :absolute
       }
-    }
+    }.tap do |fish|
+      fish_model.add_observer(ObserverCallback.new {|event|
+        event_type, value = *event.to_a.first
+        case event_type
+        when :limit
+          fish.find(:gauge).text = value
+        end
+      })
+      fish.find(:amount).disable
+    end
   end
 
   def update
@@ -180,96 +244,16 @@ class GameView < ViewBase
     @ui.find(:pause).visible = @model.pause?
     fishes = @ui.find(:fishes)
     if @model.fishes.size > fishes.components.size
-      @model.fishes[fishes.components.size..(@model.fishes.size-1)].each do |f|
-        fish = fish_container(fish_text(f), fish_gauge(f))
-        f.add_observer(ObserverCallback.new {|event|
-          event_type, value = *event.to_a.first
-          case event_type
-          when :limit
-            fish.find(:gauge).text = value
-          end
-        })
-        fishes.add(fish)
+      @model.fishes.drop(fishes.components.size).each do |fish_model|
+        fishes.add(new_fish(fish_model))
       end
     end
     @ui.layout
-    fishes.components.each_with_index do |fish, n|
-      if @model.inbusiness?
-        fish.find(:amount).enable
-      else
-        fish.find(:amount).disable
-      end
-    end
-    @ui.find(:ships).components.each_with_index do |ship, n|
-      if @model.infishing?
-        ship.find(:gradeup).color = nil
-        ship.find(:gradeup).disable
-      else
-        if @model.money < @model.ships[n].levelup_cost
-          ship.find(:gradeup).color = [255,255,63,0]
-          ship.find(:gradeup).disable
-        else
-          ship.find(:gradeup).color = nil
-          ship.find(:gradeup).enable
-        end
-      end
-      ship.find(:stat).text = ship_state_text(n)
-    end
-    @ui.find(:money).text = money_text
-    @ui.find(:day).text = day_text
-    @ui.find(:time).text = time_text
-    @ui.find(:rate).text = rate_text
     @mouse_event_dispatcher.dispatch
   end
 
   def draw
     @ui.draw
-  end
-
-  def fish_text(f)
-    "マグロ #{f.amount.to_s}"
-  end
-
-  def fish_gauge(f)
-    f.limit_gauge
-  end
-
-  def lv_text(n)
-    "Lv.#{@model.ships[n].level.to_s}"
-  end
-
-  def money_text
-    "資金 #{@model.money.to_s}"
-  end
-
-  def day_text
-    "#{@model.day.to_s}日目"
-  end
-
-  def time_text
-    "#{@model.hour.to_s}:00"
-  end
-
-  def rate_text
-    "相場 #{@model.rate.to_s}"
-  end
-
-  def ship_caption_text(n)
-    if @model.ships[n].level > 0
-      "改造#{@model.ships[n].levelup_cost.to_s}"
-    else
-      "購入#{@model.ships[n].levelup_cost.to_s}"
-    end
-  end
-
-  def ship_state_text(n)
-    if @model.ships[n].level == 0
-      ""
-    elsif @model.infishing?
-      "作業中"
-    else
-      "停泊中"
-    end
   end
 
 end

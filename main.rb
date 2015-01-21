@@ -40,24 +40,26 @@ view = TitleView.new(game, controller)
 SpriteUI.equip MouseEventHandler
 
 Window.loop do
-
-  controller.input
+  controller.update
   view.update
   view.draw
-  game.clock if game.state == :game
-  case game.state
-  when :next
-    game = Game.new
-    controller = Controller.new(game)
-    view = GameView.new(game.game_data, controller)
+  game.update if game.state == :game
+  case game.next_state
+  when :next_game
+    game.transit_state
+    game.setup_game
+    game.go_to_title
   when :title
+    game.transit_state
     view = TitleView.new(game, controller)
   when :game
-    view = GameView.new(game.game_data, controller) unless GameView === view
+    game.transit_state
+    view = GameView.new(game.game_data, controller)
   when :ranking
+    game.transit_state
     view = RankingView.new(game.ranking_data, controller)
-  when :end
+  when :ending
+    game.transit_state
     view = EndingView.new(game.score_data, controller)
   end
-
 end

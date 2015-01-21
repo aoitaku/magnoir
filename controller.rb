@@ -4,16 +4,12 @@ class Controller
     @game = game
   end
 
-  def input
-    if Input.key_push?(K_Z)
-      case @game.state
-      when :game
+  def update
+    if @game.state == :game
+      if Input.key_push?(K_Z)
         @game.game_data.sell_all_fish
       end
-    end
-    if Input.key_push?(K_SPACE)
-      case @game.state
-      when :game
+      if Input.key_push?(K_SPACE)
         @game.game_data.toggle_pause
       end
     end
@@ -23,11 +19,11 @@ class Controller
   end
 
   def on_start_click
-    @game.start
+    @game.go_to_game
   end
 
   def on_ranking_click
-    @game.rank_start
+    @game.go_to_ranking
   end
 
   def on_exit_click
@@ -35,11 +31,11 @@ class Controller
   end
 
   def on_go_title_click
-    @game.go_title
+    @game.go_to_title
   end
 
   def on_go_next_click
-    @game.next
+    @game.go_next
   end
 
   def on_fish_click(index)
