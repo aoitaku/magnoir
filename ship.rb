@@ -1,35 +1,47 @@
-require 'observer'
-require 'game'
+require_relative './game'
+require_relative './fish'
+require_relative './observable_model'
 
-class Ship
-
-  include Observable
+class Ship < ObservableModel
 
   attr_reader :level
 
   def initialize(level)
+    super()
     @level = level
     @status = false
   end
 
   def levelup
     @level += 1
-    changed
+    enqueue_event(levelup: self)
+    self
   end
 
   def levelup_cost
-    return 1000 if(@level == 0)
-    return @level*200
+    if @level == 0
+      1000
+    else
+      @level * 200
+    end
   end
 
   def start_fishing
-    @status = true if(@level > 0)
+    @status = true if @level > 0
+  end
+
+  def fishing?
+    @status
   end
 
   def finish_fishing
-    return unless(@status)
-    @status = false
-    return Fish.new(Game::d6(@level*2))
+    fishing? and Fish.new(Game::d6(@level * 2)).tap do
+      @status = false
+    end or nil
+  end
+
+  def notify_standby
+    publish_event(levelup: self)
   end
 
 end

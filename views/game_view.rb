@@ -127,18 +127,21 @@ class GameView < ViewBase
       }
     }
     @ui.layout
-    @ui.find(:ships).components.each_with_index {|ship, n|
-      model.ships[n].add_observer(ObserverCallback.new {|value|
-        ship.find(:lv).text = "Lv.#{value.to_s}"
-        if value > 0
-          ship.find(:gradeup).text = "改造#{model.ships[n].levelup_cost.to_s}"
-        else
-          ship.find(:gradeup).text = "購入#{model.ships[n].levelup_cost.to_s}"
+    @ui.find(:ships).components.each_with_index do |ship, n|
+      model.ships[n].add_observer(ObserverCallback.new {|event|
+        event_type, value = *event.to_a.first
+        case event_type
+        when :levelup
+          ship.find(:lv).text = "Lv.#{value.level.to_s}"
+          if value.level > 0
+            ship.find(:gradeup).text = "改造#{value.levelup_cost.to_s}"
+          else
+            ship.find(:gradeup).text = "購入#{value.levelup_cost.to_s}"
+          end
         end
       })
-      model.ships[n].changed
-      model.ships[n].notify_observers(model.ships[n].level)
-    }
+      model.ships[n].notify_standby
+    end
     fishes = @ui.find(:fishes)
     model.add_observer(ObserverCallback.new {|event|
       event_type, value = *event.to_a.first
@@ -228,7 +231,7 @@ class GameView < ViewBase
   end
 
   def fish_gauge(f)
-    f.limit_gage
+    f.limit_gauge
   end
 
   def lv_text(n)
