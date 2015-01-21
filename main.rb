@@ -49,15 +49,15 @@ Window.loop do
   when :next
     game = Game.new
     controller = Controller.new(game)
-    view = GameView.new(game, controller)
+    view = GameView.new(game.game_data, controller)
   when :title
     view = TitleView.new(game, controller)
   when :game
-    view = GameView.new(game, controller) unless GameView === view
+    view = GameView.new(game.game_data, controller) unless GameView === view
   when :ranking
-    view = RankingView.new(game, controller)
+    view = RankingView.new(game.ranking_data, controller)
   when :end
-    view = EndingView.new(game, controller)
+    view = EndingView.new(game.score_data, controller)
   end
 
 end

@@ -22,12 +22,12 @@ class RankingView < ViewBase
       ContainerBox(:ranking)
     }
     ranking = @ui.find(:ranking)
-    @model.ranking.each_with_index do |r,i|
+    @model.scores.each_with_index do |score, i|
       ranking.add SpriteUI.build {
         TextLabel {
           left 250
           top 120 + 40 * i
-          text "#{(i+1).to_s}. #{r.to_s}"
+          text "#{(i + 1).to_s}. #{score.to_s}"
           font Font32
           position :absolute
         }

@@ -177,7 +177,7 @@ class GameView < ViewBase
 
   def update
     @mouse_event_dispatcher.update
-    @ui.find(:pause).visible = @model.pause
+    @ui.find(:pause).visible = @model.pause?
     fishes = @ui.find(:fishes)
     if @model.fishes.size > fishes.components.size
       @model.fishes[fishes.components.size..(@model.fishes.size-1)].each do |f|

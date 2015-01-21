@@ -49,7 +49,7 @@ class EndingView < ViewBase
   end
 
   def draw
-    @highscore.draw if @model.new_rank
+    @highscore.draw if @model.highscore?
     @ui.draw
   end
 
