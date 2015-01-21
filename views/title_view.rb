@@ -19,14 +19,23 @@ class TitleView < ViewBase
         TextButton(:start) {
           text "START"
           font Font32
+          add_event_handler :mouse_left_push, -> target {
+            controller.on_start_click
+          }
         }
         TextButton(:ranking) {
           text "RANKING"
           font Font32
+          add_event_handler :mouse_left_push, -> target {
+            controller.on_ranking_click
+          }
         }
         TextButton(:exit) {
           text "EXIT"
           font Font32
+          add_event_handler :mouse_left_push, -> target {
+            controller.on_exit_click
+          }
         }
       }
     }

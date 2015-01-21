@@ -18,6 +18,9 @@ class RankingView < ViewBase
         text "戻る"
         font Font20
         position :absolute
+        add_event_handler :mouse_left_push, -> target {
+          controller.on_go_title_click
+        }
       }
       ContainerBox(:ranking)
     }
