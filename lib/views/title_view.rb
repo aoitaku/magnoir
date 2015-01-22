@@ -5,7 +5,7 @@ class TitleView < ViewBase
   def initialize(model, controller)
     super
     @ui = SpriteUI.build {
-      image Image.load("maguro.png")
+      image Image.load('./gfx/maguro.png')
       TextLabel {
         left 80
         top 10

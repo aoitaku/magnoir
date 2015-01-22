@@ -7,12 +7,12 @@ class RankingData
   end
 
   def load_ranking
-    IO.write('rank.dat', '') unless File.exist?('rank.dat')
-    @scores = IO.foreach('rank.dat').with_object([]) {|line, arr| arr << line.to_i }
+    IO.write('./dat/rank.dat', '') unless File.exist?('dat/rank.dat')
+    @scores = IO.foreach('./dat/rank.dat').with_object([]) {|line, arr| arr << line.to_i }
   end
 
   def save_ranking
-    IO.write('rank.dat', @scores.map(&:to_s).join("\n"))
+    IO.write('./dat/rank.dat', @scores.map(&:to_s).join("\n"))
   end
 
   def register_score(score)

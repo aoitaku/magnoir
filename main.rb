@@ -1,10 +1,12 @@
 $LOAD_PATH << File.dirname(File.expand_path(__FILE__))
 
 require 'dxruby'
-require 'sprite_ui'
-require 'game'
-require 'view'
-require 'controller'
+require 'quindle_sprite_ui'
+require_relative './lib/game'
+require_relative './lib/view'
+require_relative './lib/controller'
+
+include Quindle
 
 RED = [255,0,0]
 YELLOW = [255,255,0]

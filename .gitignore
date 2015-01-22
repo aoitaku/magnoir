@@ -211,6 +211,10 @@ pip-log.txt
 #Translations
 *.mo
 
+Gemfile.lock
+vendor/
+./bundle
+
 #Mr Developer
 .mr.developer.cfg
 *.dat
