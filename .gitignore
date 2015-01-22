@@ -213,7 +213,7 @@ pip-log.txt
 
 Gemfile.lock
 vendor/
-./bundle
+.bundle/
 
 #Mr Developer
 .mr.developer.cfg
