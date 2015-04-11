@@ -1,12 +1,12 @@
 $LOAD_PATH << File.dirname(File.expand_path(__FILE__))
 
+require 'bundler'
+Bundler.require
 require 'dxruby'
-require 'dxruby_sprite_ui'
+#require 'dxruby_sprite_ui'
 require_relative './lib/game'
 require_relative './lib/view'
 require_relative './lib/controller'
-
-include Quincite
 
 RED = [255,0,0]
 YELLOW = [255,255,0]
@@ -39,7 +39,7 @@ game = Game.new
 controller = Controller.new(game)
 view = TitleView.new(game, controller)
 
-SpriteUI.equip MouseEventHandler
+SpriteUI.equip :MouseEventHandler
 
 Window.loop do
   controller.update

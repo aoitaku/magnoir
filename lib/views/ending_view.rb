@@ -6,38 +6,34 @@ class EndingView < ViewBase
     super
     score = @model.score.to_s
     @highscore = SpriteUI.build {
+      width :full
+      justify_content :center
       TextLabel {
-        left 170
-        top 180
+        margin [180, 0, 0, 0]
         text "ハイスコアを更新しました！"
         font Font20
         color [255,0,255,0]
-        position :absolute
       }
     }
     @highscore.layout
     @ui = SpriteUI.build {
+      width :full
+      justify_content :center
       TextLabel {
-        left 140
-        top 40
+        margin [40, 0, 20, 0]
         text "GAME OVER"
         font Font60
-        position :absolute
       }
       TextLabel {
-        left 200
-        top 120
+        height 270
         text "score: #{score}"
         font Font32
-        position :absolute
       }
       TextButton {
-        left 250
-        top 400
+        width 150
         text "戻る"
         font Font20
-        position :absolute
-        add_event_handler :mouse_left_push, -> target {
+        onclick -> target {
           controller.on_go_next_click
         }
       }

@@ -6,34 +6,35 @@ class TitleView < ViewBase
     super
     @ui = SpriteUI.build {
       image Image.load('./gfx/maguro.png')
+      width :full
+      justify_content :center
       TextLabel {
-        left 80
-        top 10
+        margin [10, 0, 0]
+        width :full
+        text_align :center
         text "MAGURO"
         font Font120
       }
       ContainerBox {
-        position :absolute
-        left 240
-        top 240
+        margin [230, 0, 0]
         TextButton(:start) {
           text "START"
           font Font32
-          add_event_handler :mouse_left_push, -> target {
+          onclick -> target {
             controller.on_start_click
           }
         }
         TextButton(:ranking) {
           text "RANKING"
           font Font32
-          add_event_handler :mouse_left_push, -> target {
+          onclick -> target {
             controller.on_ranking_click
           }
         }
         TextButton(:exit) {
           text "EXIT"
           font Font32
-          add_event_handler :mouse_left_push, -> target {
+          onclick -> target {
             controller.on_exit_click
           }
         }

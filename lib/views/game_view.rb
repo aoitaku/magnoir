@@ -6,32 +6,34 @@ class GameView < ViewBase
   def initialize(model, controller)
     super
     ship_caption = -> *args {
-      image Image.new(100, 30).box(0, 0, 100, 30, [255,255,255])
+      layout :horizontal_box
+      align_items :bottom
+      width :full
+      padding [8, 4]
+      border width: 1, color: [127,127,127]
+      height 30
       TextLabel(:lv) {
-        left 4
-        top 7
+        width 0.4
         text "Lv.0"
         font Font16
-        position :absolute
       }
       TextButton(:gradeup) {
-        left 45
-        top 10
-        width 48
-        height 12
         font Font12
       }
     }
     ship_state = -> *args {
+      layout :flow
       top 5
-      image Image.new(100, 100).box(0, 0, 100, 100, [255,255,255])
+      border width: 1, color: [127,127,127]
+      width 100
+      height 100
+      padding [10, 8]
       TextLabel(:stat) {
-        left 6
-        top 10
         font Font16
       }
     }
     @ui = SpriteUI.build {
+      layout :horizontal_box
       TextLabel(:pause) {
         font Font20
         text "PAUSE"
@@ -39,88 +41,56 @@ class GameView < ViewBase
         top 15
         position :absolute
       }
-      ContainerBox(:warehouse) {
-        left 480
-        top 20
-        image Image.new(1,420).line(0,0,0,420,[255,255,255])
-        position :absolute
-        ContainerBox(:fishes) {
-          left 10
-          top 70
-          position :absolute
-          add_event_handler :mouse_left_push, -> target {
-            controller.on_fish_click(components.map {|component|
-              component.find(:amount)
-            }.find_index {|component|
-              target == component
-            })
-          }
-        }
-        TextLabel(:money) {
-          left 10
-          top 380
-          text "資金 600"
-          font Font20
-          position :absolute
-        }
-        TextLabel(:day) {
-          left 10
-          text "1日目"
-          font Font20
-          position :absolute
-        }
-        TextLabel(:time) {
-          left 10
-          top 20
-          text "0:00"
-          font Font20
-          position :absolute
-        }
-        TextLabel(:rate) {
-          left 10
-          top 40
-          text "相場 10"
-          font Font20
-          position :absolute
-        }
-      }
       ContainerBox(:ships) {
         width 430
-        height 140
+        margin [40, 20, 20]
+        layout :horizontal_box
+        justify_content :space_between
         ContainerBox {
-          left 20
-          top 40
-          position :absolute
           ContainerBox(&ship_caption)
           ContainerBox(&ship_state)
         }
         ContainerBox {
-          left 130
-          top 40
-          position :absolute
           ContainerBox(&ship_caption)
           ContainerBox(&ship_state)
         }
         ContainerBox {
-          left 240
-          top 40
-          position :absolute
           ContainerBox(&ship_caption)
           ContainerBox(&ship_state)
         }
         ContainerBox {
-          left 350
-          top 40
-          position :absolute
           ContainerBox(&ship_caption)
           ContainerBox(&ship_state)
         }
-        add_event_handler :mouse_left_push, -> target {
-          controller.on_ship_click(components.map {|component|
-            component.find(:gradeup)
-          }.find_index {|component|
-            target == component and not component.disable?
-          })
+      }
+      ContainerBox(:warehouse) {
+        margin [20, 20, 20, 30]
+        height :full
+        image Image.new(1,420).line(0,0,0,420,[127,127,127])
+        TextLabel(:day) {
+          margin [0, 10]
+          text "1日目"
+          font Font20
+        }
+        TextLabel(:time) {
+          margin [0, 10]
+          text "0:00"
+          font Font20
+        }
+        TextLabel(:rate) {
+          margin [0, 10]
+          text "相場 10"
+          font Font20
+        }
+        ContainerBox(:fishes) {
+          margin [0, 10]
+          width :full
+          height 315
+        }
+        TextLabel(:money) {
+          margin [0, 10]
+          text "資金 600"
+          font Font20
         }
       }
     }
@@ -141,6 +111,20 @@ class GameView < ViewBase
       })
       model.ships[n].notify_standby
     end
+    @ui.find(:fishes).add_event_handler :mouse_left_push, -> target {
+      controller.on_fish_click(components.map {|component|
+        component.find(:amount)
+      }.find_index {|component|
+        target == component
+      })
+    }
+    @ui.find(:ships).add_event_handler :mouse_left_push, -> target {
+      controller.on_ship_click(components.map {|component|
+        component.find(:gradeup)
+      }.find_index {|component|
+        target == component and not component.disable?
+      })
+    }
     time = @ui.find(:time)
     day = @ui.find(:day)
     rate = @ui.find(:rate)
@@ -212,20 +196,17 @@ class GameView < ViewBase
 
   def new_fish(fish_model)
     fish = SpriteUI.build {
-      width 200
-      height 20
+      layout :horizontal_box;
+      width :full
       TextButton(:amount) {
+        width 88
         text "マグロ #{fish_model.amount.to_s}"
-        width 100
-        height 20
         font Font20
-        position :absolute
       }
       TextLabel(:gauge) {
+        width 112
         text fish_model.limit_gauge
-        left 90
         font Font20
-        position :absolute
       }
     }.tap do |fish|
       fish_model.add_observer(ObserverCallback.new {|event|
@@ -241,7 +222,7 @@ class GameView < ViewBase
 
   def update
     @mouse_event_dispatcher.update
-    @ui.find(:pause).visible = @model.pause?
+    @ui.find(:pause).style_set(:visible, @model.pause?)
     fishes = @ui.find(:fishes)
     if @model.fishes.size > fishes.components.size
       @model.fishes.drop(fishes.components.size).each do |fish_model|

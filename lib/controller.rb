@@ -12,6 +12,9 @@ class Controller
       if Input.key_push?(K_SPACE)
         @game.game_data.toggle_pause
       end
+      if Input.key_push?(K_Q)
+        @game.go_to_ending
+      end
     end
     if Input.key_push?(K_ESCAPE)
       exit
