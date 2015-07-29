@@ -5,33 +5,6 @@ class GameView < ViewBase
 
   def initialize(model, controller)
     super
-    ship_caption = -> *args {
-      layout :horizontal_box
-      align_items :bottom
-      width :full
-      padding [8, 4]
-      border width: 1, color: [127,127,127]
-      height 30
-      TextLabel(:lv) {
-        width 0.4
-        text "Lv.0"
-        font Font16
-      }
-      TextButton(:gradeup) {
-        font Font12
-      }
-    }
-    ship_state = -> *args {
-      layout :flow
-      top 5
-      border width: 1, color: [127,127,127]
-      width 100
-      height 100
-      padding [10, 8]
-      TextLabel(:stat) {
-        font Font16
-      }
-    }
     @ui = SpriteUI.build {
       layout :horizontal_box
       TextLabel(:pause) {
@@ -46,49 +19,74 @@ class GameView < ViewBase
         margin [40, 20, 20]
         layout :horizontal_box
         justify_content :space_between
-        ContainerBox {
-          ContainerBox(&ship_caption)
-          ContainerBox(&ship_state)
+        4.times {
+          ContainerBox {
+            ContainerBox {
+              layout :horizontal_box
+              align_items :bottom
+              width :full
+              padding [8, 4]
+              border width: 1, color: [127,127,127]
+              height 30
+              TextLabel(:lv) {
+                width 0.4
+                text "Lv.0"
+                font Font16
+              }
+              TextButton(:gradeup) {
+                font Font12
+              }
+            }
+            ContainerBox {
+              layout :flow
+              margin [5, 0, 0, 0]
+              border width: 1, color: [127,127,127]
+              width 100
+              height 100
+              padding [10, 8]
+              TextLabel(:stat) {
+                font Font16
+              }
+            }
+          }
         }
-        ContainerBox {
-          ContainerBox(&ship_caption)
-          ContainerBox(&ship_state)
-        }
-        ContainerBox {
-          ContainerBox(&ship_caption)
-          ContainerBox(&ship_state)
-        }
-        ContainerBox {
-          ContainerBox(&ship_caption)
-          ContainerBox(&ship_state)
+        add_event_handler :mouse_left_push, -> target {
+          controller.on_ship_click(components.map {|component|
+            component.find(:gradeup)
+          }.find_index {|component|
+            target == component and not component.disable?
+          })
         }
       }
       ContainerBox(:warehouse) {
         margin [20, 20, 20, 30]
+        padding [0, 10]
         height :full
         image Image.new(1,420).line(0,0,0,420,[127,127,127])
         TextLabel(:day) {
-          margin [0, 10]
           text "1日目"
           font Font20
         }
         TextLabel(:time) {
-          margin [0, 10]
           text "0:00"
           font Font20
         }
         TextLabel(:rate) {
-          margin [0, 10]
           text "相場 10"
           font Font20
         }
         ContainerBox(:fishes) {
-          margin [0, 10]
           width :full
           height 315
+          add_event_handler :mouse_left_push, -> target {
+            controller.on_fish_click(components.map {|component|
+              component.find(:amount)
+            }.find_index {|component|
+              target == component
+            })
+          }
         }
         TextLabel(:money) {
-          margin [0, 10]
           text "資金 600"
           font Font20
         }
@@ -111,20 +109,6 @@ class GameView < ViewBase
       })
       model.ships[n].notify_standby
     end
-    @ui.find(:fishes).add_event_handler :mouse_left_push, -> target {
-      controller.on_fish_click(components.map {|component|
-        component.find(:amount)
-      }.find_index {|component|
-        target == component
-      })
-    }
-    @ui.find(:ships).add_event_handler :mouse_left_push, -> target {
-      controller.on_ship_click(components.map {|component|
-        component.find(:gradeup)
-      }.find_index {|component|
-        target == component and not component.disable?
-      })
-    }
     time = @ui.find(:time)
     day = @ui.find(:day)
     rate = @ui.find(:rate)
@@ -142,8 +126,8 @@ class GameView < ViewBase
         rate.text = "相場 #{value.to_s}"
       when :new_money
         money.text = "資金 #{value.to_s}"
-        ships.each_with_index {|ship, n|
-          enable_ship_upgrade(ship, n)
+        sync_enum(ships, @model.ships).each {|ship, ship_model|
+          enable_ship_upgrade(ship, ship_model)
         } unless model.infishing?
       when :start_fishing
         ships.each_with_index do |ship, n|
@@ -157,9 +141,9 @@ class GameView < ViewBase
       when :finish_business
         fishes.each {|fish| fish.find(:amount).disable }
       when :finish_fishing
-        ships.each_with_index do |ship, n|
-          enable_ship_upgrade(ship, n)
-          if model.ships[n].level > 0
+        sync_enum(ships, @model.ships).each do |ship, ship_model|
+          enable_ship_upgrade(ship, ship_model)
+          if ship_model.level > 0
             ship.find(:stat).text = "停泊中"
           end
         end
@@ -169,14 +153,14 @@ class GameView < ViewBase
         fishes.delete_at(value)
       end
     })
-    ships.each_with_index {|ship, n|
-      enable_ship_upgrade(ship, n)
-    }
+    sync_enum(ships, @model.ships).each do |ship, ship_model|
+      enable_ship_upgrade(ship, ship_model)
+    end
     @mouse_event_dispatcher = SpriteUI::MouseEventDispatcher.new(@ui)
   end
 
-  def enable_ship_upgrade(ship, n)
-    if enough_for_upgrade?(n)
+  def enable_ship_upgrade(ship, ship_model)
+    if @model.money >= ship_model.levelup_cost
       ship.find(:gradeup).color = nil
       ship.find(:gradeup).enable
     else
@@ -185,13 +169,13 @@ class GameView < ViewBase
     end
   end
 
+  def sync_enum(array, other)
+    array.lazy.zip(other)
+  end
+
   def disable_ship_upgrade(ship)
     ship.find(:gradeup).color = nil
     ship.find(:gradeup).disable
-  end
-
-  def enough_for_upgrade?(n)
-    @model.money >= @model.ships[n].levelup_cost
   end
 
   def new_fish(fish_model)
